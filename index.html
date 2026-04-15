@@ -393,6 +393,13 @@
             <strong>Списък продукти (за изтриване)</strong>
         </div>
         <div class="admin-products-list" id="adminList"></div>
+
+        <div style="margin-top:14px; display:flex; gap:8px; align-items:center;">
+            <strong style="font-size:12px; color:#d0d0ea;">Резервно копие:</strong>
+            <button class="btn secondary small" type="button" onclick="exportData()">Експорт</button>
+            <button class="btn secondary small" type="button" onclick="document.getElementById('importFileInput').click()">Импорт</button>
+            <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importData(event)">
+        </div>
     </div>
 </div>
 
@@ -675,7 +682,7 @@ function renderProductDetail(productId) {
             const idx = products.findIndex(p => p.id === productId);
             if (idx === -1) return;
 
-            const maxTotalImages = 6; // общ максимум снимки [web:215][web:219]
+            const maxTotalImages = 6;
 
             function finishUpdate(extraImages) {
                 products[idx].title = title;
@@ -699,7 +706,7 @@ function renderProductDetail(productId) {
             }
 
             if (files && files.length) {
-                const filesArray = Array.from(files); // добавяме всички, после режем до maxTotalImages [web:210][web:219]
+                const filesArray = Array.from(files);
                 const extraImages = [];
                 let loaded = 0;
                 filesArray.forEach(file => {
@@ -871,6 +878,49 @@ function logoutAdmin() {
     if (currentDetailProductId) {
         renderProductDetail(currentDetailProductId);
     }
+}
+
+function exportData() {
+    const products = getProducts();
+    const collections = getCollections();
+    const backup = { products, collections };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "asya-store-backup.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function importData(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+        try {
+            const data = JSON.parse(ev.target.result);
+            if (!Array.isArray(data.products) || !Array.isArray(data.collections)) {
+                alert("Невалиден файл: липсват продукти или колекции.");
+                return;
+            }
+            saveProducts(data.products);
+            saveCollections(data.collections);
+            const products = getProducts();
+            const collections = getCollections();
+            renderFilterOptions(collections);
+            renderCollectionSelect(collections);
+            renderCatalog(products, collections);
+            renderAdminList(products);
+            alert("Успешно зареждане на резервно копие!");
+        } catch(err) {
+            alert("Грешка при четене на файла: " + err.message);
+        }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
 }
 
 function init() {
