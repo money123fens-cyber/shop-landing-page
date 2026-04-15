@@ -675,7 +675,7 @@ function renderProductDetail(productId) {
             const idx = products.findIndex(p => p.id === productId);
             if (idx === -1) return;
 
-            const maxTotalImages = 6; // общ максимум снимки [web:215][web:219]
+            const maxTotalImages = 6;
 
             function finishUpdate(extraImages) {
                 products[idx].title = title;
@@ -699,7 +699,7 @@ function renderProductDetail(productId) {
             }
 
             if (files && files.length) {
-                const filesArray = Array.from(files); // добавяме всички, после режем до maxTotalImages [web:210][web:219]
+                const filesArray = Array.from(files);
                 const extraImages = [];
                 let loaded = 0;
                 filesArray.forEach(file => {
